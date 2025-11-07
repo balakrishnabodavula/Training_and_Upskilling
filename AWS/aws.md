@@ -316,3 +316,90 @@ AWS Resources and services created
 
 I AM user and user group
 <img width="975" height="461" alt="image" src="https://github.com/user-attachments/assets/9c12e80c-2668-4725-8188-6c8893cdc73b" />
+
+
+Added user to user group
+ 
+
+ 
+
+ 
+EC2
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+
+ 
+
+
+ 
+
+Created the Aws access key’s secret’s and downloaded same on local machine. 
+AWS Cli installed
+ 
+Billing-
+ 
+
+
+VPC
+ 
+Subnets-
+ 
+
+ 
+
+Routes table-
+ 
+Internet Gateways –
+
+ 
+
+Attached the Subnets
+
+ 
+
+ 
+
+ 
+
+NAT Gateways-
+
+Private Nat gateways
+ 
+
+Public Nat gateways
+ 
+
+EC2 /webserver Security group
+ 
+
+Inbound rules
+ 
+
+Outbound Roules
+ 
+
+Keypair for SSH to ec2 access
+ 
+S3 Bucket
+
+ 
+ 
+Bucket versioning Enabled 
+ 
+Server access Enabled -  
+ 
+
+ 
+
+
+ 

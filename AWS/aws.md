@@ -319,21 +319,27 @@ I AM user and user group
 
 
 Added user to user group
+ <img width="975" height="441" alt="image" src="https://github.com/user-attachments/assets/e9372bb5-720f-4b25-88c9-52b75e068b2f" />
  
+ <img width="975" height="420" alt="image" src="https://github.com/user-attachments/assets/074fe9c7-def4-4227-b054-fc324cb63c70" />
+<img width="975" height="420" alt="image" src="https://github.com/user-attachments/assets/853b6d58-93d5-4630-9c4a-faa3fc59a45b" />
+<img width="975" height="400" alt="image" src="https://github.com/user-attachments/assets/8664dc81-5a2c-4081-931b-8854dcdf1c73" />
 
- 
-
- 
 EC2
- 
+ <img width="975" height="459" alt="image" src="https://github.com/user-attachments/assets/a3df757a-2b5a-439b-a3e7-c8fc50ee66d8" />
+<img width="975" height="421" alt="image" src="https://github.com/user-attachments/assets/3fae8d86-334b-432c-b130-6a0ebd4272c7" />
 
- 
+<img width="975" height="455" alt="image" src="https://github.com/user-attachments/assets/50e52a2b-14b7-4931-8066-da011f9c01b8" />
 
- 
+ <img width="975" height="452" alt="image" src="https://github.com/user-attachments/assets/1c1d125e-7729-4706-b041-47469098ad69" />
 
- 
+<img width="975" height="455" alt="image" src="https://github.com/user-attachments/assets/35662785-c1bf-49b8-9b30-e6592215ea84" />
+<img width="975" height="461" alt="image" src="https://github.com/user-attachments/assets/5d6bc6bd-a0a4-4430-9184-310abf4948ad" />
 
- 
+<img width="975" height="467" alt="image" src="https://github.com/user-attachments/assets/8b38d2c9-6e1e-48bb-b783-e668ee592bec" />
+
+ <img width="975" height="415" alt="image" src="https://github.com/user-attachments/assets/2673c58a-64c1-4f68-98c6-e759d2078a0b" />
+
 
  
 
@@ -345,27 +351,37 @@ EC2
 
 Created the Aws access key’s secret’s and downloaded same on local machine. 
 AWS Cli installed
- 
+ <img width="975" height="68" alt="image" src="https://github.com/user-attachments/assets/4760c97c-30d5-467a-b205-557a8ffb876c" />
+
 Billing-
  
+<img width="975" height="379" alt="image" src="https://github.com/user-attachments/assets/18221c70-f156-4639-a3e2-f0272d0a0b1e" />
 
 
 VPC
- 
+ <img width="975" height="395" alt="image" src="https://github.com/user-attachments/assets/bd28ae23-d243-4be5-af11-1cab9ab4bc2c" />
+
 Subnets-
  
+<img width="975" height="417" alt="image" src="https://github.com/user-attachments/assets/7a1cdcb7-ac66-451d-b8c6-6bd3ba4de708" />
+<img width="975" height="417" alt="image" src="https://github.com/user-attachments/assets/950887b5-c197-4a6f-8a0d-69b30270f812" />
 
  
 
 Routes table-
- 
+ <img width="975" height="415" alt="image" src="https://github.com/user-attachments/assets/366aa979-bb19-4cba-97a9-651834be418b" />
+
 Internet Gateways –
+<img width="975" height="417" alt="image" src="https://github.com/user-attachments/assets/588d8ddc-2b10-4d63-a552-cf477ead54c6" />
 
  
 
 Attached the Subnets
+<img width="975" height="462" alt="image" src="https://github.com/user-attachments/assets/c67ff5e2-4ba4-42be-8271-836260b34195" />
 
- 
+ <img width="975" height="421" alt="image" src="https://github.com/user-attachments/assets/010caef5-8ea2-4a88-a0c3-170874bc4eff" />
+
+<img width="975" height="430" alt="image" src="https://github.com/user-attachments/assets/5087727a-aa62-461b-8aed-77e0e4fb2020" />
 
  
 
@@ -374,32 +390,47 @@ Attached the Subnets
 NAT Gateways-
 
 Private Nat gateways
- 
+ <img width="975" height="411" alt="image" src="https://github.com/user-attachments/assets/19e46b2e-f834-4294-8824-38a0a1edbeb4" />
+
 
 Public Nat gateways
+<img width="975" height="419" alt="image" src="https://github.com/user-attachments/assets/6171de75-ab7d-4058-950f-fcfcca940b94" />
  
 
 EC2 /webserver Security group
- 
+ <img width="975" height="425" alt="image" src="https://github.com/user-attachments/assets/f9195dd9-265b-41c0-8b0b-3b5a76449c66" />
+
 
 Inbound rules
- 
+ <img width="975" height="445" alt="image" src="https://github.com/user-attachments/assets/21fa112b-da0f-41cb-8085-a25a7763bd76" />
+
 
 Outbound Roules
- 
+ <img width="975" height="415" alt="image" src="https://github.com/user-attachments/assets/b4abe177-9c18-4868-935d-1c8376347f00" />
+
 
 Keypair for SSH to ec2 access
- 
+ <img width="975" height="415" alt="image" src="https://github.com/user-attachments/assets/d08bdc2d-f7e7-44be-b377-af1d8d78e427" />
+
 S3 Bucket
+<img width="975" height="356" alt="image" src="https://github.com/user-attachments/assets/8d66a9e8-5dfd-4d33-bac9-836e6a6976bf" />
+<img width="975" height="391" alt="image" src="https://github.com/user-attachments/assets/d9f8dade-7e70-486f-95ce-85fe49b036a2" />
 
  
  
 Bucket versioning Enabled 
- 
+<img width="975" height="454" alt="image" src="https://github.com/user-attachments/assets/ccf676c0-96db-4dc7-8fef-b92afed55d43" />
+
 Server access Enabled -  
- 
+<img width="975" height="408" alt="image" src="https://github.com/user-attachments/assets/293e0aaf-acfd-4464-af06-1a6e93d4e5ff" />
+ <img width="975" height="421" alt="image" src="https://github.com/user-attachments/assets/48333258-1215-43e2-9f7e-8549385e2482" />
+<img width="975" height="417" alt="image" src="https://github.com/user-attachments/assets/d0ccfb54-7a52-426f-b080-c01307330107" />
+
+<img width="975" height="427" alt="image" src="https://github.com/user-attachments/assets/548927d8-38ef-4861-b697-7482911c1de3" />
+
+ <img width="975" height="399" alt="image" src="https://github.com/user-attachments/assets/4afd15cf-31b7-4078-99cc-057ba2abf0b9" />
+
+
 
  
 
-
- 

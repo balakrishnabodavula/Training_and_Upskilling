@@ -26,5 +26,3 @@ locals {
     ManagedBy   = "Terraform"
   }
 }
-
-

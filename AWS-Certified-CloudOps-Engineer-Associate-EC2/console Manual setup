@@ -1,0 +1,81 @@
+EC2 High Availability & Scalability - Manual Console Steps
+Lab 1: Create Launch Template (Console)
+Step 1: Create Launch Template
+Go to EC2 Console → Launch Templates
+Click "Create launch template"
+Configure Template:
+Name: cloudops-template
+Description: CloudOps web server template
+AMI: Ubuntu Server 22.04 LTS (latest)
+Instance type: t3.micro
+Key pair: demouserNvirginia
+Security groups: Select existing web server security group
+Advanced details → User data:
+#!/bin/bash
+apt update -y
+apt install -y apache2
+systemctl start apache2
+systemctl enable apache2
+echo "<h1>CloudOps Web Server - $(hostname)</h1>" > /var/www/html/index.html
+echo "<p>Instance ID: $(curl -s http://169.254.169.254/latest/meta-data/instance-id)</p>" >> /var/www/html/index.html
+chown -R www-data:www-data /var/www/html
+Click "Create launch template"
+Lab 2: Create Auto Scaling Group (Console)
+Step 1: Create Auto Scaling Group
+Go to EC2 Console → Auto Scaling Groups
+Click "Create Auto Scaling group"
+Choose launch template:
+Name: cloudops-asg
+Launch template: Select cloudops-template
+Version: Latest
+Click "Next"
+Step 2: Configure Network
+VPC: Select default VPC
+Availability Zones and subnets: Select 2-3 public subnets in different AZs
+Click "Next"
+Step 3: Configure Advanced Options
+Load balancing: Enable Application Load Balancer
+Target groups: Create new target group
+Name: cloudops-tg
+Protocol: HTTP
+Port: 80
+Health checks:
+Type: ELB
+Grace period: 300 seconds
+Click "Next"
+Step 4: Configure Group Size
+Desired capacity: 2
+Minimum capacity: 1
+Maximum capacity: 6
+Scaling policies: Target tracking scaling policy
+Metric type: Average CPU Utilization
+Target value: 70%
+Click "Next"
+Step 5: Add Tags
+Add tag:
+Key: Name
+Value: CloudOps-ASG-Instance
+Click "Next" → Create Auto Scaling group
+Lab 3: Create Application Load Balancer (Console)
+Step 1: Create Load Balancer
+Go to EC2 Console → Load Balancers
+Click "Create Load Balancer"
+Select "Application Load Balancer"
+Step 2: Configure Load Balancer
+Basic configuration:
+Name: cloudops-alb
+Scheme: Internet-facing
+IP address type: IPv4
+Network mapping:
+VPC: Default VPC
+Mappings: Select 2-3 availability zones
+Security groups: Create or select web security group (HTTP/HTTPS)
+Step 3: Configure Listeners and Routing
+Listeners:
+Protocol: HTTP
+Port: 80
+Default action: Forward to target group
+Target group: Select cloudops-tg (created with ASG)
+Step 4: Review and Create
+Review configuration
+Click "Create load balancer"

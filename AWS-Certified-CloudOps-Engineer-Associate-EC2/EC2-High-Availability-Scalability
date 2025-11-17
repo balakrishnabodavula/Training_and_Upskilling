@@ -1,0 +1,413 @@
+Auto Scaling Groups
+Create Launch Template
+# Create launch template
+aws ec2 create-launch-template \
+  --launch-template-name cloudops-template \
+  --launch-template-data '{
+    "ImageId": "ami-0c398cb65a93047f2",
+    "InstanceType": "t3.micro",
+    "KeyName": "cloudops-key",
+    "SecurityGroupIds": ["sg-xxxxxxxxx"],
+    "IamInstanceProfile": {"Name": "SSMInstanceProfile"},
+    "UserData": "IyEvYmluL2Jhc2gKYXB0IHVwZGF0ZSAteQphcHQgaW5zdGFsbCAteSBhcGFjaGUyCnN5c3RlbWN0bCBzdGFydCBhcGFjaGUyCnN5c3RlbWN0bCBlbmFibGUgYXBhY2hlMgplY2hvICI8aDE+Q2xvdWRPcHMgV2ViIFNlcnZlciAtICQoaG9zdG5hbWUpPC9oMT4iID4gL3Zhci93d3cvaHRtbC9pbmRleC5odG1sCmNob3duIC1SIHd3dy1kYXRhOnd3dy1kYXRhIC92YXIvd3d3L2h0bWw="
+  }'
+
+# Update launch template
+aws ec2 create-launch-template-version \
+  --launch-template-name cloudops-template \
+  --launch-template-data '{
+    "ImageId": "ami-0c398cb65a93047f2",
+    "InstanceType": "t3.small"
+  }'
+Create Auto Scaling Group
+# Create Auto Scaling Group
+aws autoscaling create-auto-scaling-group \
+  --auto-scaling-group-name cloudops-asg \
+  --launch-template LaunchTemplateName=cloudops-template,Version=1 \
+  --min-size 2 \
+  --max-size 6 \
+  --desired-capacity 2 \
+  --vpc-zone-identifier "subnet-xxxxxxxxx,subnet-yyyyyyyyy" \
+  --health-check-type ELB \
+  --health-check-grace-period 300 \
+  --tags "Key=Name,Value=CloudOps-ASG-Instance,PropagateAtLaunch=true,ResourceId=cloudops-asg,ResourceType=auto-scaling-group"
+
+# Update Auto Scaling Group
+aws autoscaling update-auto-scaling-group \
+  --auto-scaling-group-name cloudops-asg \
+  --desired-capacity 3
+Terraform Auto Scaling Configuration
+# autoscaling.tf
+resource "aws_launch_template" "cloudops_template" {
+  name_prefix   = "cloudops-"
+  image_id      = "ami-0c398cb65a93047f2"
+  instance_type = "t3.micro"
+  key_name      = aws_key_pair.cloudops_key.key_name
+  
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+  
+  iam_instance_profile {
+    name = aws_iam_instance_profile.ssm_profile.name
+  }
+  
+  user_data = base64encode(<<-EOF
+    #!/bin/bash
+    apt update -y
+    apt install -y apache2
+    systemctl start apache2
+    systemctl enable apache2
+    echo "<h1>CloudOps Web Server - $(hostname)</h1>" > /var/www/html/index.html
+    chown -R www-data:www-data /var/www/html
+    EOF
+  )
+  
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "CloudOps-ASG-Instance"
+    }
+  }
+}
+
+resource "aws_autoscaling_group" "cloudops_asg" {
+  name                = "cloudops-asg"
+  vpc_zone_identifier = [aws_subnet.public_1.id, aws_subnet.public_2.id]
+  min_size            = 2
+  max_size            = 6
+  desired_capacity    = 2
+  health_check_type   = "ELB"
+  health_check_grace_period = 300
+  
+  launch_template {
+    id      = aws_launch_template.cloudops_template.id
+    version = "$Latest"
+  }
+  
+  tag {
+    key                 = "Name"
+    value               = "CloudOps-ASG"
+    propagate_at_launch = false
+  }
+}
+Lab 2: Application Load Balancer
+Create Application Load Balancer
+# Create ALB
+aws elbv2 create-load-balancer \
+  --name cloudops-alb \
+  --subnets subnet-xxxxxxxxx subnet-yyyyyyyyy \
+  --security-groups sg-xxxxxxxxx \
+  --scheme internet-facing \
+  --type application \
+  --ip-address-type ipv4
+
+# Create target group
+aws elbv2 create-target-group \
+  --name cloudops-tg \
+  --protocol HTTP \
+  --port 80 \
+  --vpc-id vpc-xxxxxxxxx \
+  --health-check-path /index.html \
+  --health-check-interval-seconds 30 \
+  --health-check-timeout-seconds 5 \
+  --healthy-threshold-count 2 \
+  --unhealthy-threshold-count 3
+
+# Create listener
+aws elbv2 create-listener \
+  --load-balancer-arn arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/cloudops-alb/1234567890123456 \
+  --protocol HTTP \
+  --port 80 \
+  --default-actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/cloudops-tg/1234567890123456
+Terraform Load Balancer Configuration
+# load-balancer.tf
+resource "aws_lb" "cloudops_alb" {
+  name               = "cloudops-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb_sg.id]
+  subnets            = [aws_subnet.public_1.id, aws_subnet.public_2.id]
+  
+  enable_deletion_protection = false
+  
+  tags = {
+    Name = "CloudOps ALB"
+  }
+}
+
+resource "aws_lb_target_group" "cloudops_tg" {
+  name     = "cloudops-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main.id
+  
+  health_check {
+    enabled             = true
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    timeout             = 5
+    interval            = 30
+    path                = "/index.html"
+    matcher             = "200"
+  }
+  
+  tags = {
+    Name = "CloudOps Target Group"
+  }
+}
+
+resource "aws_lb_listener" "cloudops_listener" {
+  load_balancer_arn = aws_lb.cloudops_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+  
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.cloudops_tg.arn
+  }
+}
+
+resource "aws_autoscaling_attachment" "cloudops_attachment" {
+  autoscaling_group_name = aws_autoscaling_group.cloudops_asg.id
+  lb_target_group_arn    = aws_lb_target_group.cloudops_tg.arn
+}
+Lab 3: Auto Scaling Policies
+Create Scaling Policies
+# Scale up policy
+aws autoscaling put-scaling-policy \
+  --auto-scaling-group-name cloudops-asg \
+  --policy-name scale-up-policy \
+  --policy-type TargetTrackingScaling \
+  --target-tracking-configuration '{
+    "TargetValue": 70.0,
+    "PredefinedMetricSpecification": {
+      "PredefinedMetricType": "ASGAverageCPUUtilization"
+    }
+  }'
+
+# Step scaling policy
+aws autoscaling put-scaling-policy \
+  --auto-scaling-group-name cloudops-asg \
+  --policy-name step-scale-up \
+  --policy-type StepScaling \
+  --adjustment-type ChangeInCapacity \
+  --step-adjustments MetricIntervalLowerBound=0,MetricIntervalUpperBound=50,ScalingAdjustment=1 \
+  --step-adjustments MetricIntervalLowerBound=50,ScalingAdjustment=2
+Terraform Scaling Policies
+# scaling-policies.tf
+resource "aws_autoscaling_policy" "scale_up" {
+  name                   = "scale-up-policy"
+  scaling_adjustment     = 1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown              = 300
+  autoscaling_group_name = aws_autoscaling_group.cloudops_asg.name
+}
+
+resource "aws_autoscaling_policy" "scale_down" {
+  name                   = "scale-down-policy"
+  scaling_adjustment     = -1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown              = 300
+  autoscaling_group_name = aws_autoscaling_group.cloudops_asg.name
+}
+
+resource "aws_cloudwatch_metric_alarm" "cpu_high" {
+  alarm_name          = "cpu-high"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "120"
+  statistic           = "Average"
+  threshold           = "80"
+  alarm_description   = "This metric monitors ec2 cpu utilization"
+  
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.cloudops_asg.name
+  }
+  
+  alarm_actions = [aws_autoscaling_policy.scale_up.arn]
+}
+
+resource "aws_cloudwatch_metric_alarm" "cpu_low" {
+  alarm_name          = "cpu-low"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "120"
+  statistic           = "Average"
+  threshold           = "20"
+  alarm_description   = "This metric monitors ec2 cpu utilization"
+  
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.cloudops_asg.name
+  }
+  
+  alarm_actions = [aws_autoscaling_policy.scale_down.arn]
+}
+Lab 4: Multi-AZ Deployment
+Create Multi-AZ Infrastructure
+# Create subnets in different AZs
+aws ec2 create-subnet \
+  --vpc-id vpc-xxxxxxxxx \
+  --cidr-block 10.0.1.0/24 \
+  --availability-zone us-east-1a
+
+aws ec2 create-subnet \
+  --vpc-id vpc-xxxxxxxxx \
+  --cidr-block 10.0.2.0/24 \
+  --availability-zone us-east-1b
+
+aws ec2 create-subnet \
+  --vpc-id vpc-xxxxxxxxx \
+  --cidr-block 10.0.3.0/24 \
+  --availability-zone us-east-1c
+Terraform Multi-AZ Setup
+# multi-az.tf
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+resource "aws_subnet" "public" {
+  count = 3
+  
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.${count.index + 1}.0/24"
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  map_public_ip_on_launch = true
+  
+  tags = {
+    Name = "Public Subnet ${count.index + 1}"
+  }
+}
+
+resource "aws_autoscaling_group" "multi_az_asg" {
+  name                = "multi-az-asg"
+  vpc_zone_identifier = aws_subnet.public[*].id
+  min_size            = 3
+  max_size            = 9
+  desired_capacity    = 3
+  
+  launch_template {
+    id      = aws_launch_template.cloudops_template.id
+    version = "$Latest"
+  }
+}
+Lab 5: Network Load Balancer
+Create Network Load Balancer
+# Create NLB
+aws elbv2 create-load-balancer \
+  --name cloudops-nlb \
+  --scheme internet-facing \
+  --type network \
+  --subnets subnet-xxxxxxxxx subnet-yyyyyyyyy
+
+# Create target group for NLB
+aws elbv2 create-target-group \
+  --name cloudops-nlb-tg \
+  --protocol TCP \
+  --port 80 \
+  --vpc-id vpc-xxxxxxxxx \
+  --health-check-protocol TCP \
+  --health-check-port 80
+Terraform NLB Configuration
+# nlb.tf
+resource "aws_lb" "cloudops_nlb" {
+  name               = "cloudops-nlb"
+  internal           = false
+  load_balancer_type = "network"
+  subnets            = [aws_subnet.public_1.id, aws_subnet.public_2.id]
+  
+  enable_deletion_protection = false
+  
+  tags = {
+    Name = "CloudOps NLB"
+  }
+}
+
+resource "aws_lb_target_group" "cloudops_nlb_tg" {
+  name     = "cloudops-nlb-tg"
+  port     = 80
+  protocol = "TCP"
+  vpc_id   = aws_vpc.main.id
+  
+  health_check {
+    enabled             = true
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 6
+    interval            = 30
+    protocol            = "TCP"
+    port                = "traffic-port"
+  }
+}
+Lab 6: Elastic Load Balancer SSL/TLS
+Configure HTTPS Listener
+# Request SSL certificate
+aws acm request-certificate \
+  --domain-name cloudops.example.com \
+  --validation-method DNS
+
+# Create HTTPS listener
+aws elbv2 create-listener \
+  --load-balancer-arn arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/cloudops-alb/1234567890123456 \
+  --protocol HTTPS \
+  --port 443 \
+  --certificates CertificateArn=arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012 \
+  --default-actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/cloudops-tg/1234567890123456
+Terraform SSL Configuration
+# ssl.tf
+resource "aws_acm_certificate" "cloudops_cert" {
+  domain_name       = "cloudops.example.com"
+  validation_method = "DNS"
+  
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.cloudops_alb.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01"
+  certificate_arn   = aws_acm_certificate.cloudops_cert.arn
+  
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.cloudops_tg.arn
+  }
+}
+Best Practices
+Use multiple AZs for high availability
+Configure health checks properly
+Set appropriate scaling policies
+Monitor performance metrics
+Use SSL/TLS for secure communication
+Implement proper security groups
+Regular testing of failover scenarios
+Monitoring and Troubleshooting
+# Check ASG status
+aws autoscaling describe-auto-scaling-groups \
+  --auto-scaling-group-names cloudops-asg
+
+# Check load balancer health
+aws elbv2 describe-target-health \
+  --target-group-arn arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/cloudops-tg/1234567890123456
+
+# View scaling activities
+aws autoscaling describe-scaling-activities \
+  --auto-scaling-group-name cloudops-asg
+Cleanup
+# Delete Auto Scaling Group
+aws autoscaling delete-auto-scaling-group \
+  --auto-scaling-group-name cloudops-asg \
+  --force-delete
+
+# Delete Load Balancer
+aws elbv2 delete-load-balancer \
+  --load-balancer-arn arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/cloudops-alb/1234567890123456
+
+# Delete Launch Template
+aws ec2 delete-launch-template \
+  --launch-template-name cloudops-template

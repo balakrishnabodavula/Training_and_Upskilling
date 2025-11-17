@@ -1,0 +1,47 @@
+Basic Lambda Function for CloudOps
+Overview
+This lab creates a Lambda function using Terraform that can start, stop, and list EC2 instances based on tags. This is a common CloudOps automation task for cost optimization and resource management.
+
+Architecture
+Architecture Diagram
+
+Terraform Code Structure
+1. Variables Configuration (variables.tf)
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
+  default     = "dev"
+}
+
+variable "project_name" {
+  description = "Project name"
+  type        = string
+  default     = "cloudops"
+}
+
+# Standard Tags
+locals {
+  common_tags = {
+    Owner       = "Imran Shaikh"
+    Project     = "Internal POC"
+    DM          = "Kalpesh Kumal"
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+2. Main Infrastructure (main.tf)
+Lambda Function: Python 3.9 runtime with EC2 automation code
+IAM Role: Execution role with EC2 and CloudWatch permissions
+CloudWatch Log Group: For function logging
+3. Lambda Function Code (lambda_function.py)
+Capabilities:
+
+List Instances: Find EC2 instances by tag
+Stop Instances: Stop running instances with specific tags
+Start Instances: Start stopped instances with specific tags

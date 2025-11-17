@@ -1,0 +1,5 @@
+aws_region   = "us-east-1"
+environment  = "dev"
+project_name = "cloudops"
+key_name     = "demouserNvirginia"
+my_ip        = "106.215.179.74/32"

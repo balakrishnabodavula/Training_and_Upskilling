@@ -1,0 +1,54 @@
+# 1️⃣ ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  index.html: "<h1>Hello Kubernetes Full Stack</h1>"
+
+---
+# 2️⃣ Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deploy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:stable
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: config-volume
+          mountPath: /usr/share/nginx/html
+      - name: sidecar-logger
+        image: busybox
+        command: ["sh", "-c", "while true; do date; sleep 5; done"]
+      volumes:
+      - name: config-volume
+        configMap:
+          name: nginx-config
+
+---
+# 3️⃣ Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    app: nginx
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
+  type: NodePort
